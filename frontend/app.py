@@ -95,7 +95,7 @@ section.main > div:empty {
 """, unsafe_allow_html=True)
 
 # API Base URL
-API_URL = "http://localhost:8000"
+API_URL = "http://127.0.0.1:8000"
 
 # Header
 st.markdown("<h1 style='text-align: center; color: #f08080;'>Moodify AI</h1>", unsafe_allow_html=True)
