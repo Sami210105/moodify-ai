@@ -38,6 +38,7 @@ Open `http://localhost:8501` in your browser.
 moodify-ai/
 ├── backend/
 │   └── main.py           # FastAPI server
+│   └── requirements.txt        
 ├── frontend/
 │   └── app.py            # Streamlit UI
 ├── requirements.txt      # Dependencies
@@ -94,14 +95,14 @@ API docs: `http://localhost:8000/docs`
 
 **Slow generation:** Normal on CPU (2-5 min). Use GPU for faster results (10-30s)
 
-## 📝 License
+## Requirements Structure
 
-MIT License
+The project uses separate dependency files for frontend and backend.
 
-## 👨‍💻 Author
+- Root `requirements.txt` → Frontend (Streamlit Cloud)
+- `backend/requirements.txt` → Backend (FastAPI + MusicGen)
 
-**Sam** - Built with ♡
+This separation avoids cloud deployment limitations and follows standard ML system design.
 
----
 
 For technical documentation, see [DOCUMENTATION.md](DOCUMENTATION.md)

@@ -1,45 +1,6 @@
-# -----------------------------
-# Core Web Framework
-# -----------------------------
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
 streamlit==1.28.1
-
-# -----------------------------
-# AI & Deep Learning (Stable for Python 3.11)
-# -----------------------------
-torch==2.1.2
-transformers==4.36.2
-accelerate==0.25.0
-huggingface-hub==0.19.4
-
-# -----------------------------
-# Audio Processing
-# -----------------------------
-librosa==0.10.1
-numpy==1.26.4
-scipy==1.11.4
-soundfile==0.12.1
-pydub==0.25.1
-audioread==3.0.1
-
-# -----------------------------
-# API & Data Handling
-# -----------------------------
-pydantic==2.5.3
-requests==2.31.0
-python-multipart==0.0.6
-httpx==0.24.1
-
-# -----------------------------
-# Visualization (Streamlit)
-# -----------------------------
-matplotlib==3.8.2
-seaborn==0.13.1
-
-# -----------------------------
-# Utilities
-# -----------------------------
-ffmpeg-python==0.2.0
-typing-extensions==4.9.0
-click==8.1.7
+requests
+numpy
+matplotlib
+librosa
+soundfile
