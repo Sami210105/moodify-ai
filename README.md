@@ -4,14 +4,14 @@ AI-powered music generation and remixing platform that creates and transforms au
 
 ![Python](https://img.shields.io/badge/python-3.11-blue) ![FastAPI](https://img.shields.io/badge/FastAPI-0.104.1-green) ![Streamlit](https://img.shields.io/badge/Streamlit-1.28.1-red)
 
-## ✨ Features
+## Features
 
-- **🎼 Generate Music** - Create original tracks from mood, genre, and text prompts
-- **🔄 Remix Audio** - Transform existing audio to match different moods
-- **📊 Analyze Audio** - Extract detailed audio features and characteristics
-- **🎨 Beautiful UI** - Intuitive Streamlit interface with custom styling
+- **Generate Music** - Create original tracks from mood, genre, and text prompts
+- **Remix Audio** - Transform existing audio to match different moods
+- **Analyze Audio** - Extract detailed audio features and characteristics
+- **Beautiful UI** - Intuitive Streamlit interface with custom styling
 
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
 # Clone and setup
@@ -45,13 +45,13 @@ moodify-ai/
 └── venv/                # Virtual environment
 ```
 
-## 🔧 Tech Stack
+## Tech Stack
 
 - **Backend**: FastAPI, PyTorch, Transformers (MusicGen), Librosa
 - **Frontend**: Streamlit, Matplotlib
 - **Audio**: Librosa, SoundFile, NumPy
 
-## 📡 API Endpoints
+## API Endpoints
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
@@ -62,7 +62,7 @@ moodify-ai/
 
 API docs: `http://localhost:8000/docs`
 
-## 🎮 Usage
+## Usage
 
 **Generate Music:**
 1. Select mood and genre
@@ -80,14 +80,14 @@ API docs: `http://localhost:8000/docs`
 2. Click "Analyze Audio"
 3. View extracted features
 
-## ⚠️ Important Notes
+## Important Notes
 
 - First run downloads MusicGen model (~2.5 GB) - cached for reuse
 - Backend must run before frontend
 - FFmpeg required for audio processing
 - GPU recommended for faster generation
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 **Connection refused:** Ensure backend is running on port 8000
 
