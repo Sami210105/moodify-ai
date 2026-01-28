@@ -60,8 +60,6 @@ moodify-ai/
 | `/analyze` | POST | Analyze audio features |
 | `/moods` | GET | List available moods |
 
-API docs: `http://localhost:8000/docs`
-
 ## Usage
 
 **Generate Music:**
