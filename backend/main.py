@@ -11,6 +11,10 @@ import soundfile as sf
 from pydub import AudioSegment
 import io
 import base64
+import warnings
+
+# Suppress warnings
+warnings.filterwarnings('ignore')
 
 app = FastAPI(title="Moodify AI API")
 
@@ -23,58 +27,50 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Load MusicGen model
+# Model configuration
 MODEL_NAME = "facebook/musicgen-small"
-processor = AutoProcessor.from_pretrained(MODEL_NAME)
-model = MusicgenForConditionalGeneration.from_pretrained(MODEL_NAME)
 
+print("🎵 Loading Moodify AI...")
+print(f"📦 Model: {MODEL_NAME}")
+print("⏳ This may take a few minutes on first run (downloading model)...")
+
+# Detect device
 device = "cuda" if torch.cuda.is_available() else "cpu"
-model = model.to(device)
+print(f"🔧 Device: {device}")
 
-# Mood mapping 
+# Load processor
+processor = AutoProcessor.from_pretrained(MODEL_NAME)
+
+# Load model with CPU-compatible settings
+if device == "cuda":
+    # GPU: Use float16 and low memory mode
+    model = MusicgenForConditionalGeneration.from_pretrained(
+        MODEL_NAME,
+        torch_dtype=torch.float16,
+        low_cpu_mem_usage=True
+    )
+else:
+    # CPU: Use float32 WITHOUT low_cpu_mem_usage to avoid Meta backend issues
+    print("💾 Loading model (this will use ~3-4GB RAM)...")
+    model = MusicgenForConditionalGeneration.from_pretrained(
+        MODEL_NAME,
+        torch_dtype=torch.float32
+        # NOT using low_cpu_mem_usage on CPU to avoid Meta backend error
+    )
+
+model = model.to(device)
+model.eval()
+
+print(f"✅ Model loaded successfully! (dtype: {model.dtype})")
+
+# Mood mapping
 MOOD_MAPPING = {
-    "Happy": {
-        "tempo_range": (120, 140),
-        "key_preference": ["C", "G", "D", "A"],
-        "mode": "major",
-        "energy": "high",
-        "valence": "positive"
-    },
-    "Calm": {
-        "tempo_range": (60, 80),
-        "key_preference": ["Am", "Em", "Dm"],
-        "mode": "minor",
-        "energy": "low",
-        "valence": "neutral"
-    },
-    "Energetic": {
-        "tempo_range": (140, 180),
-        "key_preference": ["E", "B", "F#"],
-        "mode": "major",
-        "energy": "very_high",
-        "valence": "positive"
-    },
-    "Romantic": {
-        "tempo_range": (80, 100),
-        "key_preference": ["F", "Bb", "Eb"],
-        "mode": "major",
-        "energy": "medium",
-        "valence": "positive"
-    },
-    "Focused": {
-        "tempo_range": (90, 110),
-        "key_preference": ["C", "Am", "G"],
-        "mode": "neutral",
-        "energy": "medium",
-        "valence": "neutral"
-    },
-    "Party": {
-        "tempo_range": (120, 130),
-        "key_preference": ["C", "G", "D"],
-        "mode": "major",
-        "energy": "high",
-        "valence": "positive"
-    }
+    "Happy": {"tempo_range": (120, 140), "energy": "high", "valence": "positive"},
+    "Calm": {"tempo_range": (60, 80), "energy": "low", "valence": "neutral"},
+    "Energetic": {"tempo_range": (140, 180), "energy": "very_high", "valence": "positive"},
+    "Romantic": {"tempo_range": (80, 100), "energy": "medium", "valence": "positive"},
+    "Focused": {"tempo_range": (90, 110), "energy": "medium", "valence": "neutral"},
+    "Party": {"tempo_range": (120, 130), "energy": "high", "valence": "positive"}
 }
 
 class MusicGenerationRequest(BaseModel):
@@ -82,16 +78,6 @@ class MusicGenerationRequest(BaseModel):
     genre: Optional[str] = None
     prompt: Optional[str] = None
     duration: int = 10
-
-class AudioFeaturesResponse(BaseModel):
-    tempo: float
-    key: str
-    timbre: str
-    rhythm: str
-    harmonic_complexity: str
-    spectral_contrast: Dict
-    mel_spectrogram_shape: tuple
-    pitch_features: Dict
 
 class RemixRequest(BaseModel):
     audio_base64: str
@@ -101,330 +87,236 @@ class AnalyzeRequest(BaseModel):
     audio_base64: str
 
 
-def preprocess_audio(audio_array: np.ndarray, sr: int, max_duration: int = 60, preserve_quality: bool = False) -> np.ndarray:
-    """
-    Preprocess audio to prevent memory issues:
-    1. Convert to mono (high quality averaging)
-    2. Limit duration
-    3. Optionally downsample for analysis (not for remix output)
-    """
-    # Convert to mono if stereo - use proper weighted average for quality
+def preprocess_audio(audio_array: np.ndarray, sr: int, max_duration: int = 60, preserve_quality: bool = False):
+    """Preprocess audio to prevent memory issues"""
+    # Convert to mono
     if audio_array.ndim > 1:
-        audio_array = 0.5 * audio_array[:, 0] + 0.5 * audio_array[:, 1]
-    
-    # Cap length to prevent massive arrays
-    max_samples = sr * max_duration
-    if len(audio_array) > max_samples:
-        audio_array = audio_array[:max_samples]
-    
-    # Only downsample for analysis, not for remix output
+        audio_array = np.mean(audio_array, axis=1)
+
+    # Cap duration
+    audio_array = audio_array[: sr * max_duration]
+
+    # Downsample if needed
     if not preserve_quality and sr > 22050:
         audio_array = librosa.resample(audio_array, orig_sr=sr, target_sr=22050)
         sr = 22050
-    
+
     return audio_array, sr
 
 
-def extract_audio_features(audio_array: np.ndarray, sr: int) -> Dict:
-    """
-    Extract audio features using Librosa with memory-safe preprocessing
-    """
-    # Preprocess audio to prevent memory issues
-    audio_array, sr = preprocess_audio(audio_array, sr)
-    
-    # Ensure audio is 1D (mono)
-    if audio_array.ndim > 1:
-        audio_array = audio_array.flatten()
-    
-    # Extract tempo and beats
-    tempo, beats = librosa.beat.beat_track(y=audio_array, sr=sr)
-
-    # Mel spectrogram with reduced resolution for memory efficiency
-    mel_spec = librosa.feature.melspectrogram(
-        y=audio_array, 
-        sr=sr, 
-        n_mels=128,  # Reduced from default
-        fmax=8000    # Limit frequency range
-    )
-    mel_spec_db = librosa.power_to_db(mel_spec, ref=np.max)
-
-    # Pitch tracking with reduced bins
-    pitches, magnitudes = librosa.piptrack(
-        y=audio_array, 
-        sr=sr,
-        fmin=80,
-        fmax=400
-    )
-    
-    # Spectral contrast
-    spectral_contrast = librosa.feature.spectral_contrast(y=audio_array, sr=sr)
-    
-    # Chroma features for key detection
-    chroma = librosa.feature.chroma_stft(y=audio_array, sr=sr)
-    key_index = np.argmax(np.sum(chroma, axis=1))
-    keys = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
-    detected_key = keys[key_index]
-
-    # Harmonic complexity
-    harmonic = librosa.effects.harmonic(y=audio_array)
-    harmonic_energy = np.sum(harmonic ** 2)
-    total_energy = np.sum(audio_array ** 2)
-    harmonic_ratio = harmonic_energy / total_energy if total_energy > 0 else 0
-
-    if harmonic_ratio > 0.7:
-        complexity = "High"
-    elif harmonic_ratio > 0.4:
-        complexity = "Medium"
-    else:
-        complexity = "Low"
-
-    # Rhythm analysis
-    onset_env = librosa.onset.onset_strength(y=audio_array, sr=sr)
-    rhythm_regularity = np.std(onset_env)
-
-    if rhythm_regularity < 5:
-        rhythm_pattern = "Steady and regular"
-    elif rhythm_regularity < 10:
-        rhythm_pattern = "Moderately varied"
-    else:
-        rhythm_pattern = "Highly syncopated"
-
-    # Timbre analysis
-    spectral_centroid = librosa.feature.spectral_centroid(y=audio_array, sr=sr)
-    avg_centroid = np.mean(spectral_centroid)
-
-    if avg_centroid > 3000:
-        timbre_desc = "Bright and crisp"
-    elif avg_centroid > 1500:
-        timbre_desc = "Balanced and warm"
-    else:
-        timbre_desc = "Dark and mellow"
-
-    return {
-        "tempo": float(tempo),
-        "key": detected_key,
-        "timbre": timbre_desc,
-        "rhythm": rhythm_pattern,
-        "harmonic_complexity": complexity,
-        "spectral_contrast": {
-            "mean": float(np.mean(spectral_contrast)),
-            "std": float(np.std(spectral_contrast))
-        },
-        "mel_spectrogram_shape": mel_spec_db.shape,
-        "pitch_features": {
-            "mean_pitch": float(np.mean(pitches[pitches > 0])) if np.any(pitches > 0) else 0.0,
-            "pitch_range": float(np.ptp(pitches[pitches > 0])) if np.any(pitches > 0) else 0.0
-        }
-    }
-
-
-def apply_mood_effects(audio: np.ndarray, sr: int, mood_data: Dict) -> np.ndarray:
-    """
-    Apply mood-specific audio effects for better remix quality
-    """
-    # Apply subtle filtering based on energy level
-    energy = mood_data["energy"]
-    
-    if energy in ["very_high", "high"]:
-        # Boost high frequencies slightly for energetic moods
-        # Simple high-pass emphasis
-        audio = librosa.effects.preemphasis(audio, coef=0.95)
-    elif energy == "low":
-        # Gentle low-pass for calm moods using smoothing
-        # Apply a simple moving average for smoothing
-        window_size = int(sr * 0.001)  # 1ms window
-        if window_size > 1:
-            kernel = np.ones(window_size) / window_size
-            audio = np.convolve(audio, kernel, mode='same')
-    
+def apply_mood_effects(audio, sr, mood):
+    """Apply mood-specific audio effects"""
+    if mood["energy"] in ["high", "very_high"]:
+        audio = librosa.effects.preemphasis(audio)
+    elif mood["energy"] == "low":
+        win = int(sr * 0.001)
+        if win > 1:
+            audio = np.convolve(audio, np.ones(win) / win, mode="same")
     return audio
 
 
-def build_prompt_from_mood_genre(mood: str, genre: str, user_prompt: str) -> str:
-    prompt_parts = []
-
+def build_prompt(mood, genre, prompt):
+    """Build a comprehensive prompt from user inputs"""
+    parts = []
     if mood and mood in MOOD_MAPPING:
-        mood_data = MOOD_MAPPING[mood]
-        tempo_min, tempo_max = mood_data["tempo_range"]
-        prompt_parts.append(f"{mood.lower()} mood")
-        prompt_parts.append(f"{tempo_min}-{tempo_max} BPM")
-        prompt_parts.append(f"{mood_data['energy']} energy")
-
+        tmin, tmax = MOOD_MAPPING[mood]["tempo_range"]
+        parts += [f"{mood.lower()} mood", f"{tmin}-{tmax} BPM"]
     if genre:
-        prompt_parts.append(f"{genre.lower()} genre")
-
-    if user_prompt:
-        prompt_parts.append(user_prompt)
-
-    return ", ".join(prompt_parts)
+        parts.append(f"{genre.lower()} genre")
+    if prompt:
+        parts.append(prompt)
+    return ", ".join(parts)
 
 
 @app.get("/")
-def read_root():
-    return {"message": "Moodify AI - AI-Based Music Mood & Remix Generator"}
+async def root():
+    """Health check endpoint"""
+    return {
+        "status": "online",
+        "model": MODEL_NAME,
+        "device": device,
+        "dtype": str(model.dtype),
+        "message": "Moodify AI Backend is running!"
+    }
 
 
 @app.post("/generate")
 async def generate_music(request: MusicGenerationRequest):
+    """Generate new music from mood, genre, and prompt"""
     try:
-        generation_prompt = build_prompt_from_mood_genre(
-            request.mood,
-            request.genre,
-            request.prompt
-        )
+        text_prompt = build_prompt(request.mood, request.genre, request.prompt)
+        if not text_prompt:
+            raise HTTPException(status_code=400, detail="Please provide mood, genre, or prompt")
 
-        if not generation_prompt:
-            raise HTTPException(status_code=400, detail="Please provide mood, genre, or text prompt")
+        print(f"🎼 Generating music with prompt: {text_prompt}")
+        print(f"⏱️  Duration: {request.duration}s")
+        if device == "cpu":
+            print(f"⚠️  CPU mode: This will take 30-90 seconds...")
 
-        inputs = processor(
-            text=[generation_prompt],
-            padding=True,
-            return_tensors="pt",
-        ).to(device)
+        # Process inputs
+        inputs = processor(text=[text_prompt], return_tensors="pt")
+        inputs = {k: v.to(device) for k, v in inputs.items()}
 
-        max_new_tokens = request.duration * 50
+        # Generate audio
+        with torch.no_grad():
+            audio = model.generate(
+                **inputs,
+                max_new_tokens=request.duration * 50,
+                do_sample=True,
+                guidance_scale=3.0
+            )
 
-        audio_values = model.generate(
-            **inputs,
-            max_new_tokens=max_new_tokens,
-            do_sample=True,
-            guidance_scale=3.0
-        )
+        # Convert to numpy and normalize
+        audio = audio[0, 0].cpu().numpy().astype(np.float32)
+        audio = audio / (np.max(np.abs(audio)) + 1e-8)
 
-        audio_array = audio_values[0, 0].cpu().numpy()
-        sampling_rate = model.config.audio_encoder.sampling_rate
-
-        features = extract_audio_features(audio_array, sampling_rate)
-
-        audio_array = audio_array / np.max(np.abs(audio_array))
-
+        # Save to buffer
         buffer = io.BytesIO()
-        wavfile.write(buffer, sampling_rate, (audio_array * 32767).astype(np.int16))
+        sf.write(
+            buffer,
+            audio,
+            model.config.audio_encoder.sampling_rate,
+            format="WAV",
+            subtype="PCM_24"
+        )
         buffer.seek(0)
 
-        audio_base64 = base64.b64encode(buffer.read()).decode('utf-8')
+        # Clean up GPU memory if using CUDA
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
+        print("✅ Music generation complete!")
 
         return {
             "success": True,
-            "audio_base64": audio_base64,
-            "sampling_rate": sampling_rate,
-            "features": features,
-            "generation_params": {
-                "mood": request.mood,
-                "genre": request.genre,
-                "prompt": generation_prompt,
-                "duration": request.duration
-            }
+            "audio_base64": base64.b64encode(buffer.read()).decode(),
+            "sampling_rate": model.config.audio_encoder.sampling_rate,
+            "duration": request.duration
         }
 
     except Exception as e:
+        print(f"❌ Generation error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Generation failed: {str(e)}")
-
-
-@app.post("/analyze")
-async def analyze_audio(request: AnalyzeRequest):
-    try:
-        audio_bytes = base64.b64decode(request.audio_base64)
-        audio_array, sr = sf.read(io.BytesIO(audio_bytes))
-        
-        # Preprocess before analysis
-        audio_array, sr = preprocess_audio(audio_array, sr, preserve_quality=False)
-        
-        features = extract_audio_features(audio_array, sr)
-        return {"success": True, "features": features}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
 
 
 @app.post("/remix")
 async def remix_audio(request: RemixRequest):
+    """Remix existing audio to match target mood"""
     try:
+        print(f"🎚️ Remixing audio to {request.target_mood} mood")
+
         # Decode audio
-        audio_bytes = base64.b64decode(request.audio_base64)
-        audio_array, sr = sf.read(io.BytesIO(audio_bytes))
-        
-        # Store original sample rate for high-quality output
-        original_sr = sr
+        audio, sr = sf.read(io.BytesIO(base64.b64decode(request.audio_base64)))
+        audio = audio.astype(np.float32)
+        audio, sr = preprocess_audio(audio, sr, preserve_quality=True)
 
-        # CRITICAL: Preprocess audio to prevent memory issues
-        # For remix, we preserve quality (no downsampling)
-        audio_array, sr = preprocess_audio(audio_array, sr, max_duration=60, preserve_quality=True)
-        
+        # Get mood parameters
         if request.target_mood not in MOOD_MAPPING:
-            raise HTTPException(status_code=400, detail="Invalid mood")
-
-        mood_data = MOOD_MAPPING[request.target_mood]
-        target_tempo = sum(mood_data["tempo_range"]) / 2
-
-        # Get current tempo
-        current_tempo, beats = librosa.beat.beat_track(y=audio_array, sr=sr)
+            raise HTTPException(status_code=400, detail=f"Invalid mood: {request.target_mood}")
         
-        # Calculate stretch factor with better bounds
-        if current_tempo > 0:
-            stretch_factor = current_tempo / target_tempo
-            # More reasonable bounds to preserve quality
-            stretch_factor = np.clip(stretch_factor, 0.7, 1.5)
-        else:
-            stretch_factor = 1.0
+        mood = MOOD_MAPPING[request.target_mood]
 
-        # Apply high-quality time stretching
-        remixed_audio = librosa.effects.time_stretch(audio_array, rate=stretch_factor)
+        # Analyze current tempo
+        tempo, _ = librosa.beat.beat_track(y=audio, sr=sr)
+        target = sum(mood["tempo_range"]) / 2
+        stretch = np.clip(tempo / target if tempo > 0 else 1.0, 0.7, 1.5)
 
-        # Apply more subtle pitch shifting with better quality
-        pitch_shift_steps = 0
-        if mood_data["valence"] == "positive" and mood_data["energy"] in ["high", "very_high"]:
-            pitch_shift_steps = 1  # More subtle shift
-        elif mood_data["energy"] == "low":
-            pitch_shift_steps = -1
-        
-        if pitch_shift_steps != 0:
-            remixed_audio = librosa.effects.pitch_shift(
-                remixed_audio, 
-                sr=sr, 
-                n_steps=pitch_shift_steps,
-                bins_per_octave=24  # Higher resolution for better quality
-            )
+        # Apply transformations
+        audio = librosa.effects.time_stretch(audio, rate=stretch)
+        audio = apply_mood_effects(audio, sr, mood)
+        audio = audio * 0.9 / (np.max(np.abs(audio)) + 1e-8)
 
-        # Apply dynamic range compression for more professional sound
-        remixed_audio = librosa.effects.preemphasis(remixed_audio)
-        
-        # Apply mood-specific EQ and effects
-        remixed_audio = apply_mood_effects(remixed_audio, sr, mood_data)
-        
-        # Normalize audio to prevent clipping
-        max_val = np.max(np.abs(remixed_audio))
-        if max_val > 0:
-            remixed_audio = remixed_audio * 0.9 / max_val
-
-        # Extract features from remixed audio
-        features = extract_audio_features(remixed_audio, sr)
-
-        # Write to buffer with high quality settings
+        # Save to buffer
         buffer = io.BytesIO()
-        sf.write(buffer, remixed_audio, sr, format="WAV", subtype='PCM_24')
+        sf.write(buffer, audio, sr, format="WAV", subtype="PCM_24")
         buffer.seek(0)
 
-        remixed_base64 = base64.b64encode(buffer.read()).decode('utf-8')
+        print("✅ Remix complete!")
 
         return {
             "success": True,
-            "remixed_audio_base64": remixed_base64,
-            "features": features,
-            "remix_params": {
-                "target_mood": request.target_mood,
-                "tempo_adjustment": f"{current_tempo:.1f} -> {target_tempo:.1f} BPM",
-                "stretch_factor": f"{stretch_factor:.2f}x",
-                "pitch_shift": f"{pitch_shift_steps:+d} semitones"
-            }
+            "remixed_audio_base64": base64.b64encode(buffer.read()).decode(),
+            "original_tempo": float(tempo),
+            "target_tempo": target,
+            "stretch_factor": float(stretch)
         }
 
     except Exception as e:
+        print(f"❌ Remix error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Remix failed: {str(e)}")
+
+
+@app.post("/analyze")
+async def analyze_audio(request: AnalyzeRequest):
+    """Analyze audio features and characteristics"""
+    try:
+        print("🔍 Analyzing audio...")
+
+        # Decode audio
+        audio, sr = sf.read(io.BytesIO(base64.b64decode(request.audio_base64)))
+        audio = audio.astype(np.float32)
+        audio, sr = preprocess_audio(audio, sr)
+
+        # Extract features
+        tempo, beats = librosa.beat.beat_track(y=audio, sr=sr)
+        spectral_centroid = np.mean(librosa.feature.spectral_centroid(y=audio, sr=sr))
+        mfcc = librosa.feature.mfcc(y=audio, sr=sr, n_mfcc=13)
+        energy = np.mean(librosa.feature.rms(y=audio))
+        zero_crossing_rate = np.mean(librosa.feature.zero_crossing_rate(y=audio))
+        
+        # Estimate key (simplified)
+        chroma = librosa.feature.chroma_stft(y=audio, sr=sr)
+        key_idx = np.argmax(np.mean(chroma, axis=1))
+        keys = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+        estimated_key = keys[key_idx]
+
+        print("✅ Analysis complete!")
+
+        return {
+            "success": True,
+            "tempo": float(tempo),
+            "spectral_centroid": float(spectral_centroid),
+            "energy": float(energy),
+            "zero_crossing_rate": float(zero_crossing_rate),
+            "estimated_key": estimated_key,
+            "mfcc_mean": float(np.mean(mfcc)),
+            "duration": len(audio) / sr,
+            "sample_rate": sr,
+            "num_beats": len(beats)
+        }
+
+    except Exception as e:
+        print(f"❌ Analysis error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
 
 
 @app.get("/moods")
 def get_moods():
-    return {"moods": MOOD_MAPPING}
+    """Get list of available moods"""
+    return {
+        "moods": list(MOOD_MAPPING.keys()),
+        "mood_details": MOOD_MAPPING
+    }
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Startup message"""
+    print("\n" + "="*50)
+    print("🎵 Moodify AI Backend Ready!")
+    print(f"📡 Server: http://0.0.0.0:8000")
+    print(f"📚 Docs: http://0.0.0.0:8000/docs")
+    print(f"🔧 Device: {device}")
+    if device == "cpu":
+        print("⚠️  Running on CPU - generation will be slower (30-90s)")
+        print("💡 For faster generation, use a GPU-enabled system")
+    print("="*50 + "\n")
 
 
 if __name__ == "__main__":

@@ -97,9 +97,42 @@ section.main > div:empty {
 # API Base URL
 API_URL = "http://127.0.0.1:8000"
 
+# Timeout settings based on duration
+def get_timeout(duration):
+    """Calculate appropriate timeout based on duration"""
+    # CPU: ~6-10 seconds per 1 second of audio
+    # Add 30s buffer for processing
+    return max(duration * 10 + 30, 180)  # Minimum 3 minutes
+
+# Check backend connection
+def check_backend():
+    """Check if backend is running"""
+    try:
+        response = requests.get(f"{API_URL}/", timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            return True, data.get('device', 'unknown')
+        return False, None
+    except:
+        return False, None
+
 # Header
 st.markdown("<h1 style='text-align: center; color: #f08080;'>Moodify AI</h1>", unsafe_allow_html=True)
 st.markdown("<h3 style='text-align: center; color: #f08080;'>AI-Based Music Mood & Remix Generator</h3>", unsafe_allow_html=True)
+
+# Backend status check
+backend_online, device_type = check_backend()
+
+if not backend_online:
+    st.error("⚠️ Backend not running! Please start the backend server on port 8000.")
+    st.info("Run in terminal: `cd backend && python main.py`")
+    st.stop()
+else:
+    # Show device info
+    if device_type == 'cpu':
+        st.warning("🐌 Running on CPU - Generation takes 30-120 seconds. Please be patient!")
+    else:
+        st.success(f"⚡ Running on {device_type.upper()} - Fast generation enabled!")
 
 # Sidebar
 with st.sidebar:
@@ -109,6 +142,20 @@ with st.sidebar:
         ["Generate New Music", "Remix Existing Audio", "Analyze Audio"],
         help="Choose what you want to do with Moodify AI"
     )
+    
+    # Performance tips
+    with st.expander("⚡ Performance Tips"):
+        st.markdown("""
+        **On CPU:**
+        - Start with 5-8 second durations
+        - Generation takes ~30-120 seconds
+        - Be patient - it's working!
+        
+        **To Speed Up:**
+        - Use shorter durations (5-10s)
+        - Close other heavy applications
+        - Use a GPU if available
+        """)
 
 # Main content area
 if mode == "Generate New Music":
@@ -137,28 +184,65 @@ if mode == "Generate New Music":
         height=100
     )
 
-    duration = st.slider("Duration (seconds)", 5, 30, 10)
+    # Duration with warning
+    duration = st.slider("Duration (seconds)", 5, 30, 8)
+    
+    if device_type == 'cpu' and duration > 15:
+        st.warning(f"⚠️ {duration}s on CPU will take ~{duration * 6}-{duration * 10} seconds to generate")
 
     if st.button("Generate Music"):
         if not mood and not genre and not prompt:
             st.error("Please select a mood, genre, or enter a text prompt!")
         else:
-            with st.spinner("Generating your music..."):
-                response = requests.post(
-                    f"{API_URL}/generate",
-                    json={"mood": mood, "genre": genre, "prompt": prompt, "duration": duration}
-                )
-
-                if response.status_code == 200:
-                    result = response.json()
-                    audio_bytes = base64.b64decode(result["audio_base64"])
-                    st.audio(audio_bytes, format="audio/wav")
-                    st.download_button(
-                        "Download Audio",
-                        audio_bytes,
-                        file_name="moodify.wav",
-                        mime="audio/wav"
+            timeout = get_timeout(duration)
+            
+            # Show estimated time
+            if device_type == 'cpu':
+                estimated_time = duration * 8
+                st.info(f"⏱️ Estimated time: ~{estimated_time} seconds. Please wait...")
+            
+            with st.spinner(f"🎵 Generating {duration}s of music... This may take a while on CPU..."):
+                try:
+                    response = requests.post(
+                        f"{API_URL}/generate",
+                        json={"mood": mood, "genre": genre, "prompt": prompt, "duration": duration},
+                        timeout=timeout
                     )
+
+                    if response.status_code == 200:
+                        result = response.json()
+                        audio_bytes = base64.b64decode(result["audio_base64"])
+                        
+                        st.success("✅ Music generated successfully!")
+                        st.audio(audio_bytes, format="audio/wav")
+                        
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            st.download_button(
+                                "📥 Download Audio",
+                                audio_bytes,
+                                file_name="moodify_generated.wav",
+                                mime="audio/wav"
+                            )
+                        with col2:
+                            st.metric("Duration", f"{result.get('duration', duration)}s")
+                    else:
+                        error_detail = response.json().get('detail', 'Unknown error')
+                        st.error(f"❌ Generation failed: {error_detail}")
+                        
+                except requests.exceptions.ConnectionError:
+                    st.error("❌ Cannot connect to backend. Is it running on port 8000?")
+                except requests.exceptions.Timeout:
+                    st.error(f"⏱️ Generation timed out after {timeout} seconds.")
+                    st.info("""
+                    **Troubleshooting:**
+                    - Try a shorter duration (5-8 seconds)
+                    - Backend is still working - check terminal
+                    - On CPU, 10s takes ~60-90 seconds
+                    - Wait a bit and check if file appears
+                    """)
+                except Exception as e:
+                    st.error(f"❌ Error: {str(e)}")
 
 elif mode == "Remix Existing Audio":
     st.header("Remix Existing Audio")
@@ -169,6 +253,7 @@ elif mode == "Remix Existing Audio":
     )
 
     if uploaded_file:
+        st.subheader("Original Audio")
         st.audio(uploaded_file)
 
         target_mood = st.selectbox(
@@ -177,24 +262,51 @@ elif mode == "Remix Existing Audio":
         )
 
         if st.button("Remix Audio"):
-            with st.spinner("Remixing your audio..."):
-                audio_bytes = uploaded_file.read()
-                audio_base64 = base64.b64encode(audio_bytes).decode()
-                response = requests.post(
-                    f"{API_URL}/remix",
-                    json={"audio_base64": audio_base64, "target_mood": target_mood}
-                )
-
-                if response.status_code == 200:
-                    result = response.json()
-                    remixed_bytes = base64.b64decode(result["remixed_audio_base64"])
-                    st.audio(remixed_bytes)
-                    st.download_button(
-                        "Download Remixed Audio",
-                        remixed_bytes,
-                        file_name="moodify_remix.wav",
-                        mime="audio/wav"
+            with st.spinner("🎚️ Remixing your audio... This takes 10-30 seconds..."):
+                try:
+                    audio_bytes = uploaded_file.read()
+                    audio_base64 = base64.b64encode(audio_bytes).decode()
+                    
+                    response = requests.post(
+                        f"{API_URL}/remix",
+                        json={"audio_base64": audio_base64, "target_mood": target_mood},
+                        timeout=120  # 2 minutes for remix
                     )
+
+                    if response.status_code == 200:
+                        result = response.json()
+                        remixed_bytes = base64.b64decode(result["remixed_audio_base64"])
+                        
+                        st.success("✅ Audio remixed successfully!")
+                        st.subheader("Remixed Audio")
+                        st.audio(remixed_bytes, format="audio/wav")
+                        
+                        # Show transformation details if available
+                        if "original_tempo" in result:
+                            col1, col2, col3 = st.columns(3)
+                            with col1:
+                                st.metric("Original Tempo", f"{result['original_tempo']:.1f} BPM")
+                            with col2:
+                                st.metric("Target Tempo", f"{result['target_tempo']:.1f} BPM")
+                            with col3:
+                                st.metric("Stretch Factor", f"{result['stretch_factor']:.2f}x")
+                        
+                        st.download_button(
+                            "📥 Download Remixed Audio",
+                            remixed_bytes,
+                            file_name=f"moodify_remix_{target_mood.lower()}.wav",
+                            mime="audio/wav"
+                        )
+                    else:
+                        error_detail = response.json().get('detail', 'Unknown error')
+                        st.error(f"❌ Remix failed: {error_detail}")
+                        
+                except requests.exceptions.ConnectionError:
+                    st.error("❌ Cannot connect to backend. Is it running on port 8000?")
+                except requests.exceptions.Timeout:
+                    st.error("⏱️ Remix timed out. Try a shorter audio file (< 30 seconds).")
+                except Exception as e:
+                    st.error(f"❌ Error: {str(e)}")
 
 elif mode == "Analyze Audio":
     st.header("Analyze Audio Features")
@@ -204,16 +316,54 @@ elif mode == "Analyze Audio":
         type=["wav", "mp3", "ogg"]
     )
 
-    if uploaded_file and st.button("Analyze Audio"):
-        audio_bytes = uploaded_file.read()
-        audio_base64 = base64.b64encode(audio_bytes).decode()
-        response = requests.post(
-            f"{API_URL}/analyze",
-            json={"audio_base64": audio_base64}
-        )
+    if uploaded_file:
+        st.subheader("Uploaded Audio")
+        st.audio(uploaded_file)
+        
+        if st.button("Analyze Audio"):
+            with st.spinner("🔍 Analyzing audio features..."):
+                try:
+                    audio_bytes = uploaded_file.read()
+                    audio_base64 = base64.b64encode(audio_bytes).decode()
+                    
+                    response = requests.post(
+                        f"{API_URL}/analyze",
+                        json={"audio_base64": audio_base64},
+                        timeout=60
+                    )
 
-        if response.status_code == 200:
-            st.success("Analysis completed!")
+                    if response.status_code == 200:
+                        result = response.json()
+                        
+                        st.success("✅ Analysis completed!")
+                        
+                        # Display results in a nice layout
+                        st.subheader("Audio Features")
+                        
+                        col1, col2, col3 = st.columns(3)
+                        with col1:
+                            st.metric("Tempo", f"{result.get('tempo', 0):.1f} BPM")
+                            st.metric("Duration", f"{result.get('duration', 0):.2f}s")
+                        with col2:
+                            st.metric("Energy", f"{result.get('energy', 0):.3f}")
+                            st.metric("Estimated Key", result.get('estimated_key', 'N/A'))
+                        with col3:
+                            st.metric("Spectral Centroid", f"{result.get('spectral_centroid', 0):.1f} Hz")
+                            st.metric("Zero Crossing Rate", f"{result.get('zero_crossing_rate', 0):.4f}")
+                        
+                        # Additional details in expander
+                        with st.expander("🔬 Technical Details"):
+                            st.json(result)
+                    else:
+                        error_detail = response.json().get('detail', 'Unknown error')
+                        st.error(f"❌ Analysis failed: {error_detail}")
+                        
+                except requests.exceptions.ConnectionError:
+                    st.error("❌ Cannot connect to backend. Is it running on port 8000?")
+                except requests.exceptions.Timeout:
+                    st.error("⏱️ Analysis timed out. Try a shorter audio file.")
+                except Exception as e:
+                    st.error(f"❌ Error: {str(e)}")
 
 # Footer
 st.markdown("---")

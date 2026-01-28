@@ -38,10 +38,10 @@ Open `http://localhost:8501` in your browser.
 moodify-ai/
 ├── backend/
 │   └── main.py           # FastAPI server
-│   └── requirements.txt        
+│   └── requirements.txt   #backend-only   
 ├── frontend/
 │   └── app.py            # Streamlit UI
-├── requirements.txt      # Dependencies
+├── requirements.txt      # Dependencies frontend-only
 └── venv/                # Virtual environment
 ```
 
