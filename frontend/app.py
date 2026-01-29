@@ -1,5 +1,4 @@
 import streamlit as st
-import requests
 import base64
 import numpy as np
 import matplotlib.pyplot as plt
@@ -7,6 +6,28 @@ import librosa
 import librosa.display
 from io import BytesIO
 import soundfile as sf
+
+@st.cache_resource
+def load_musicgen():
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    processor = AutoProcessor.from_pretrained(
+        "facebook/musicgen-small",
+        trust_remote_code=True
+    )
+
+    model = MusicgenForConditionalGeneration.from_pretrained(
+        "facebook/musicgen-small",
+        torch_dtype=torch.float16 if device == "cuda" else torch.float32,
+        low_cpu_mem_usage=True
+    )
+
+    model.to(device)
+    model.eval()
+    return processor, model, device
+
+
+processor, model, device_type = load_musicgen()
 
 # Page configuration
 st.set_page_config(
@@ -104,35 +125,10 @@ def get_timeout(duration):
     # Add 30s buffer for processing
     return max(duration * 10 + 30, 180)  # Minimum 3 minutes
 
-# Check backend connection
-def check_backend():
-    """Check if backend is running"""
-    try:
-        response = requests.get(f"{API_URL}/", timeout=5)
-        if response.status_code == 200:
-            data = response.json()
-            return True, data.get('device', 'unknown')
-        return False, None
-    except:
-        return False, None
 
 # Header
 st.markdown("<h1 style='text-align: center; color: #f08080;'>Moodify AI</h1>", unsafe_allow_html=True)
 st.markdown("<h3 style='text-align: center; color: #f08080;'>AI-Based Music Mood & Remix Generator</h3>", unsafe_allow_html=True)
-
-# Backend status check
-backend_online, device_type = check_backend()
-
-if not backend_online:
-    st.error("⚠️ Backend not running! Please start the backend server on port 8000.")
-    st.info("Run in terminal: `cd backend && python main.py`")
-    st.stop()
-else:
-    # Show device info
-    if device_type == 'cpu':
-        st.warning("🐌 Running on CPU - Generation takes 30-120 seconds. Please be patient!")
-    else:
-        st.success(f"⚡ Running on {device_type.upper()} - Fast generation enabled!")
 
 # Sidebar
 with st.sidebar:
