@@ -1,5 +1,5 @@
 from datasets import load_dataset
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sentence_transformers import SentenceTransformer
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report
@@ -17,7 +17,7 @@ emotion_to_mood = {
     "sadness": "sad", "grief": "sad", "disappointment": "sad", "remorse": "sad",
     "anger": "angry", "annoyance": "angry", "disgust": "angry",
     "fear": "anxious", "nervousness": "anxious", "surprise": "anxious",
-    "relief": "calm", "realization": "calm", "optimism": "calm",
+    "relief": "calm", "realization": "calm", "optimism": "calm","approval": "calm",
     "love": "romantic", "admiration": "romantic", "caring": "romantic",
 }
 
@@ -25,6 +25,13 @@ emotion_to_mood = {
 X = []
 Y = []
 
+with open("calm_sentences.txt", "r", encoding="utf-8") as f:
+    calm_sentences = [line.strip() for line in f if line.strip()]
+    
+for sentence in calm_sentences:
+    X.append(sentence)
+    Y.append("calm")
+    
 #convert emotions to moods
 for i in range(len(train_data)):
 
@@ -48,10 +55,9 @@ for i in range(len(train_data)):
         X.append(text)
         Y.append(mood)
 
-#tf-idf
-vectorizer = TfidfVectorizer()
-
-X_vectors = vectorizer.fit_transform(X)
+#encoder
+encoder = SentenceTransformer('all-MiniLM-L6-v2')
+X_vectors = encoder.encode(X, show_progress_bar=True)
 
 print(X_vectors.shape)
 print(len(Y))
@@ -79,4 +85,9 @@ print("Accuracy:", accuracy_score(Y_test, predictions))
 
 import joblib
 joblib.dump(model, 'emotion_song_model.pkl')
-joblib.dump(vectorizer, 'emotion_song_vectorizer.pkl')
+
+# save encoder name instead of the object
+with open("encoder_name.txt", "w") as f:
+    f.write("all-MiniLM-L6-v2")
+
+print("model saved!")
