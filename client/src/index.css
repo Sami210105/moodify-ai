@@ -1,1 +1,147 @@
-@import "tailwindcss";
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --black: #0d0b14;
+  --cream: #f5f0e8;
+  --cream2: #ede8dc;
+  --yellow: #FFD93D;
+  --pink: #FF6FB7;
+  --purple: #b06dff;
+  --orange: #FF8C42;
+  --teal: #3de8c8;
+  --blue: #5ba8ff;
+  --red: #ff4d6d;
+  --green: #7bc67e;
+  --white: #ffffff;
+  --stroke: #1a1630;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--black);
+  color: var(--white);
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--black); }
+::-webkit-scrollbar-thumb { background: #3d3560; border-radius: 3px; }
+
+@keyframes floatY {
+  0%,100% { transform: translateY(0px); }
+  50% { transform: translateY(-14px); }
+}
+@keyframes floatYslow {
+  0%,100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes pulse {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes popIn {
+  0% { transform: scale(0) rotate(-10deg); opacity: 0; }
+  80% { transform: scale(1.1) rotate(3deg); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+@keyframes waveMarquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes shimmer {
+  0%,100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+@keyframes orbPulse {
+  0%,100% { transform: scale(1); box-shadow: 0 0 30px var(--orb-color,#fff4); }
+  50% { transform: scale(1.08); box-shadow: 0 0 60px var(--orb-color,#fff6); }
+}
+@keyframes loadingDots {
+  0%,80%,100% { transform: scale(0); }
+  40% { transform: scale(1); }
+}
+@keyframes rainbowSlide {
+  0% { transform: translateX(-20px); }
+  100% { transform: translateX(0); }
+}
+@keyframes twinkle {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(0.6); }
+}
+@keyframes slideInChar {
+  0% { opacity: 0; transform: translateX(60px) scale(0.7); }
+  70% { transform: translateX(-6px) scale(1.05); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes wobble {
+  0%,100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+
+.groovy-title {
+  font-family: 'Fredoka One', cursive;
+  line-height: 0.95;
+  letter-spacing: -1px;
+}
+
+.retro-btn {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800;
+  font-size: 16px;
+  padding: 14px 32px;
+  border-radius: 50px;
+  border: 3px solid var(--stroke);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  text-decoration: none;
+  box-shadow: 4px 4px 0 var(--stroke);
+  letter-spacing: 0.3px;
+}
+.retro-btn:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--stroke);
+}
+.retro-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--stroke);
+}
+
+.retro-card {
+  border: 3px solid var(--stroke);
+  border-radius: 20px;
+  box-shadow: 6px 6px 0 var(--stroke);
+  background: var(--cream);
+  overflow: hidden;
+}
+
+.section-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+
+.star {
+  position: absolute;
+  border-radius: 50%;
+  background: white;
+  animation: twinkle var(--dur, 2s) ease-in-out var(--del, 0s) infinite;
+}

@@ -1,9 +1,36 @@
-function App() {
+import Navbar from './components/Navbar'
+import Hero from './components/Hero'
+import MarqueeTicker from './components/MarqueeTicker'
+import HowItWorks from './components/HowItWorks'
+import MoodsSection from './components/MoodsSection'
+import StatsSection from './components/StatsSection'
+import Detector from './components/Detector'
+import AboutFooter from './components/AboutFooter'
+
+const TICKER_ITEMS = [
+  'Happy vibes', 'Sad songs', 'Angry anthems', 'Calm waves',
+  'Romantic evenings', 'Anxious minds', 'GoEmotions AI', 'Last.fm powered',
+  'Feel it deeply', 'Pure imagination', 'Music for every soul',
+]
+
+const TICKER2 = [
+  'Feel it', 'Find it', 'Play it',
+  'AI-powered', 'Last.fm', 'Real emotions',
+  'Any genre', 'Any hour', 'Any mood',
+]
+
+export default function App() {
   return (
-    <div className="bg-red-500 text-white text-4xl p-10">
-      Tailwind works!
+    <div style={{ overflowX:'hidden' }}>
+      <Navbar />
+      <Hero />
+      <MarqueeTicker items={TICKER_ITEMS} bg="#FFD93D" color="#0d0b14" />
+      <HowItWorks />
+      <MarqueeTicker items={TICKER2} bg="#b06dff" color="#fff" />
+      <MoodsSection />
+      <StatsSection />
+      <Detector />
+      <AboutFooter />
     </div>
   )
 }
-
-export default App
