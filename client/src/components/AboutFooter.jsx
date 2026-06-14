@@ -32,7 +32,6 @@ export default function AboutFooter() {
         }}/>
 
         <div style={{ maxWidth:1100, margin:'0 auto', position:'relative', zIndex:1 }}>
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:80, alignItems:'center' }}>
             <div>
               <div className="section-label" style={{ color:'#3de8c8', marginBottom:16 }}>About Moodify AI</div>
               <h2 className="groovy-title" style={{
@@ -56,55 +55,6 @@ export default function AboutFooter() {
                 not where an algorithm thinks you should be.
               </p>
             </div>
-
-            <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
-              <h3 style={{ fontFamily:"'Fredoka One',cursive", fontSize:24, color:'#fff', marginBottom:8 }}>
-                Built with
-              </h3>
-              <div style={{ display:'flex', flexWrap:'wrap', gap:12 }}>
-                <TechPill icon="🤗" label="GoEmotions Dataset" color="#FFD93D"/>
-                <TechPill icon="🔤" label="Sentence Transformers" color="#FF6FB7"/>
-                <TechPill icon="🧮" label="Logistic Regression" color="#5ba8ff"/>
-                <TechPill icon="⚡" label="FastAPI" color="#3de8c8"/>
-                <TechPill icon="📻" label="Last.fm API" color="#ff4d6d"/>
-                <TechPill icon="⚛️" label="React + Vite" color="#b06dff"/>
-                <TechPill icon="💾" label="all-MiniLM-L6-v2" color="#FF8C42"/>
-              </div>
-
-              <div style={{
-                marginTop:12, padding:'24px',
-                background:'#ffffff0a',
-                borderRadius:20, border:'2px solid #ffffff11',
-              }}>
-                <div style={{ fontFamily:"'Space Mono',monospace", fontSize:12, color:'#ffffff44', marginBottom:12 }}>
-                  MOOD ACCURACY
-                </div>
-                {[
-                  { label:'Happy', pct:94, color:'#FFD93D' },
-                  { label:'Calm', pct:91, color:'#3de8c8' },
-                  { label:'Romantic', pct:88, color:'#FF6FB7' },
-                  { label:'Sad', pct:86, color:'#5ba8ff' },
-                  { label:'Anxious', pct:82, color:'#b06dff' },
-                  { label:'Angry', pct:79, color:'#ff4d6d' },
-                ].map(m=>(
-                  <div key={m.label} style={{ marginBottom:10 }}>
-                    <div style={{ display:'flex', justifyContent:'space-between', marginBottom:4 }}>
-                      <span style={{ fontSize:13, color:'#ffffffcc', fontWeight:700 }}>{m.label}</span>
-                      <span style={{ fontFamily:"'Space Mono',monospace", fontSize:12, color:m.color }}>{m.pct}%</span>
-                    </div>
-                    <div style={{ height:6, borderRadius:3, background:'#ffffff11', overflow:'hidden' }}>
-                      <div style={{
-                        height:'100%', borderRadius:3,
-                        background:m.color,
-                        width:`${m.pct}%`,
-                        transition:'width 1s ease',
-                      }}/>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -122,12 +72,11 @@ export default function AboutFooter() {
               </div>
               <p style={{ fontSize:15, color:'#ffffff66', fontWeight:600, maxWidth:280, lineHeight:1.7 }}>
                 Feel it. Find it. Play it.<br/>
-                Music intelligence for every human emotion.
               </p>
             </div>
             <div style={{ display:'flex', gap:60, flexWrap:'wrap' }}>
               {[
-                { head:'Navigate', links:['How it works','Mood detector','About','GitHub'] },
+                { head:'Navigate', links:['Meet your moods','Mood detector','About','GitHub'] },
                 { head:'Moods', links:['Happy','Sad','Angry','Calm','Romantic','Anxious'] },
               ].map(col=>(
                 <div key={col.head}>
@@ -156,19 +105,8 @@ export default function AboutFooter() {
             display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:16,
           }}>
             <span style={{ fontFamily:"'Space Mono',monospace", fontSize:12, color:'#ffffff33' }}>
-              © 2025 Moodify AI — built with 🎵 + GoEmotions + Last.fm
+              © 2025 Moodify AI — built with 🎵 
             </span>
-            <div style={{ display:'flex', gap:16 }}>
-              {['🐙 GitHub','📧 Contact','⚡ API Docs'].map(l=>(
-                <a key={l} href="#" style={{
-                  fontSize:13, color:'#ffffff44', textDecoration:'none', fontWeight:700,
-                  transition:'color 0.2s',
-                }}
-                onMouseEnter={e=>e.target.style.color='#FFD93D'}
-                onMouseLeave={e=>e.target.style.color='#ffffff44'}
-                >{l}</a>
-              ))}
-            </div>
           </div>
         </div>
       </footer>

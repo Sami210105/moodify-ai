@@ -63,18 +63,6 @@ export default function Hero() {
 
       <RainbowRibbon />
 
-      {/* Groovy sun/moon decoration top-right */}
-      <div style={{
-        position:'absolute', top:'8%', right:'14%',
-        width:90, height:90, borderRadius:'50%',
-        background:'#FFD93D',
-        border:'4px solid #1a1630',
-        display:'flex', alignItems:'center', justifyContent:'center',
-        fontSize:40,
-        animation:'floatYslow 3s ease-in-out infinite',
-        boxShadow:'5px 5px 0 #1a1630',
-      }}>🌕</div>
-
       {/* Main content */}
       <div style={{
         position:'relative', zIndex:5,
@@ -82,7 +70,7 @@ export default function Hero() {
         animation:'fadeUp 0.9s ease both',
       }}>
         <div className="section-label" style={{ color:'#FFD93D', marginBottom:20 }}>
-          ♪ &nbsp; AI-powered music for your soul &nbsp; ♪
+          ♪ &nbsp; Music for your soul &nbsp; ♪
         </div>
 
         <h1 className="groovy-title" style={{
@@ -109,7 +97,7 @@ export default function Hero() {
           lineHeight:1.7, maxWidth:560, margin:'0 auto 40px',
           fontWeight:600,
         }}>
-          Tell us how you're feeling — in any messy, honest, beautiful way —
+          Tell us how you're feeling in any messy, honest, beautiful way
           and we'll match you with songs that <em>get it</em>.
         </p>
 
@@ -124,7 +112,7 @@ export default function Hero() {
             background:'transparent', color:'#fff', borderColor:'#ffffff55',
             boxShadow:'4px 4px 0 #ffffff22',
           }}>
-            How it works ↓
+            Meet your moods ↓
           </a>
         </div>
       </div>
@@ -135,18 +123,7 @@ export default function Hero() {
         display:'flex', justifyContent:'space-between', alignItems:'flex-end',
         padding:'0 60px', pointerEvents:'none',
       }}>
-        {/* Left character - happy yellow girl */}
-        <div style={{
-          width:160, height:200,
-          background:'linear-gradient(180deg,transparent,#0d0b14)',
-          borderRadius:'20px 20px 0 0',
-          display:'flex', alignItems:'flex-end', justifyContent:'center',
-          overflow:'hidden',
-          animation:'floatY 3s ease-in-out infinite',
-        }}>
-          <div style={{ fontSize:100, lineHeight:1, filter:'drop-shadow(0 4px 16px #FFD93D66)' }}>😊</div>
-        </div>
-
+        
         {/* Scroll hint */}
         <div style={{
           display:'flex', flexDirection:'column', alignItems:'center', gap:6,
@@ -156,25 +133,9 @@ export default function Hero() {
           <span>scroll down</span>
           <div style={{ width:1, height:40, background:'linear-gradient(to bottom,#fff4,transparent)' }}/>
         </div>
-
-        {/* Right character - fear purple guy placeholder */}
-        <div style={{
-          width:160, height:200,
-          borderRadius:'20px 20px 0 0',
-          display:'flex', alignItems:'flex-end', justifyContent:'center',
-          overflow:'hidden',
-          animation:'floatY 3.5s ease-in-out 0.5s infinite',
-        }}>
-          <div style={{ fontSize:100, lineHeight:1, filter:'drop-shadow(0 4px 16px #b06dff66)' }}>😰</div>
-        </div>
+        
       </div>
 
-      {/* Wave transition to cream */}
-      <svg viewBox="0 0 1440 80" fill="none" xmlns="http://www.w3.org/2000/svg"
-        style={{ position:'absolute', bottom:-2, left:0, width:'100%', pointerEvents:'none' }}>
-        <path d="M0 80 L0 40 Q180 0 360 40 Q540 80 720 40 Q900 0 1080 40 Q1260 80 1440 40 L1440 80 Z"
-          fill="#f5f0e8"/>
-      </svg>
     </section>
   )
 }

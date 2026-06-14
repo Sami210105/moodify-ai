@@ -1,9 +1,7 @@
 import Navbar from './components/Navbar'
 import Hero from './components/Hero'
 import MarqueeTicker from './components/MarqueeTicker'
-import HowItWorks from './components/HowItWorks'
 import MoodsSection from './components/MoodsSection'
-import StatsSection from './components/StatsSection'
 import Detector from './components/Detector'
 import AboutFooter from './components/AboutFooter'
 
@@ -23,12 +21,9 @@ export default function App() {
   return (
     <div style={{ overflowX:'hidden' }}>
       <Navbar />
-      <Hero />
-      <MarqueeTicker items={TICKER_ITEMS} bg="#FFD93D" color="#0d0b14" />
-      <HowItWorks />
-      <MarqueeTicker items={TICKER2} bg="#b06dff" color="#fff" />
+      <Hero />      
       <MoodsSection />
-      <StatsSection />
+      <MarqueeTicker items={TICKER_ITEMS} bg="#FFD93D" color="#0d0b14" />
       <Detector />
       <AboutFooter />
     </div>

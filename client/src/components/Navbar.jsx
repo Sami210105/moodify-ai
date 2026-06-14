@@ -2,7 +2,7 @@ import { useState } from 'react'
 
 export default function Navbar() {
   const [open, setOpen] = useState(false)
-  const links = ['How it works', 'Moods', 'Try it', 'About']
+  const links = ['Meet your Moods', 'About']
   return (
     <nav style={{
       position: 'fixed', top: 0, left: 0, right: 0, zIndex: 999,
