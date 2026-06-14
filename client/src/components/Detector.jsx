@@ -1,113 +1,49 @@
+import joy from "../assets/images/joy.gif";
+import sadness from "../assets/images/sadness.gif";
+import anger from "../assets/images/anger.gif";
+import fear from "../assets/images/fear.gif";
+import romance from "../assets/images/romantic.gif";
+import anxietyGif from "../assets/images/anxiety.gif";
 import { useState } from "react";
 
 const MOOD_CONFIG = {
   happy: {
     color: "#FFD93D",
-    emoji: "😊",
+    gif: joy,
     label: "Happy!",
     desc: "Pure joy detected. Time to dance.",
-    char: "🎉",
   },
   sad: {
     color: "#5ba8ff",
-    emoji: "😢",
+    gif: sadness,
     label: "Sad.",
     desc: "Sitting with the feeling. Songs that hold.",
-    char: "🌧️",
   },
   angry: {
     color: "#ff4d6d",
-    emoji: "😤",
+    gif: anger,
     label: "Angry!",
     desc: "That fire in you. Let it out.",
-    char: "🔥",
   },
   calm: {
-    color: "#3de8c8",
-    emoji: "😌",
-    label: "Calm~",
+    color: "#b06dff",
+    gif: fear,
+    label: "Fear.",
     desc: "Breathing slow. Soft music incoming.",
-    char: "🌿",
   },
   romantic: {
     color: "#FF6FB7",
-    emoji: "💖",
+    gif: romance,
     label: "Romantic♡",
     desc: "Heart is full. Love songs only.",
-    char: "🌹",
   },
   anxious: {
-    color: "#b06dff",
-    emoji: "⚡",
+    color: "#fd8662",
+    gif: anxietyGif,
     label: "Anxious.",
     desc: "We got you. Grounding tunes on the way.",
-    char: "😰",
   },
 };
-
-const DEMO_SONGS = {
-  happy: [
-    { name: "Happy", artist: "Pharrell Williams" },
-    { name: "Good as Hell", artist: "Lizzo" },
-    { name: "Shake It Off", artist: "Taylor Swift" },
-    { name: "Uptown Funk", artist: "Mark Ronson" },
-    { name: "Walking on Sunshine", artist: "Katrina & The Waves" },
-  ],
-  sad: [
-    { name: "The Night We Met", artist: "Lord Huron" },
-    { name: "Skinny Love", artist: "Bon Iver" },
-    { name: "Someone Like You", artist: "Adele" },
-    { name: "River", artist: "Joni Mitchell" },
-    { name: "Hurt", artist: "Johnny Cash" },
-  ],
-  angry: [
-    { name: "Break Stuff", artist: "Limp Bizkit" },
-    { name: "Given Up", artist: "Linkin Park" },
-    { name: "Killing in the Name", artist: "Rage Against Machine" },
-    { name: "Bodies", artist: "Drowning Pool" },
-    { name: "Last Resort", artist: "Papa Roach" },
-  ],
-  calm: [
-    { name: "Weightless", artist: "Marconi Union" },
-    { name: "Holocene", artist: "Bon Iver" },
-    { name: "Comptine d'un autre été", artist: "Yann Tiersen" },
-    { name: "Experience", artist: "Ludovico Einaudi" },
-    { name: "Clair de lune", artist: "Debussy" },
-  ],
-  romantic: [
-    { name: "At Last", artist: "Etta James" },
-    { name: "La Vie en Rose", artist: "Édith Piaf" },
-    { name: "Perfect", artist: "Ed Sheeran" },
-    { name: "Make You Feel My Love", artist: "Adele" },
-    { name: "Can't Help Falling in Love", artist: "Elvis" },
-  ],
-  anxious: [
-    { name: "Breathe (2 AM)", artist: "Anna Nalick" },
-    { name: "The Sound of Silence", artist: "Simon & Garfunkel" },
-    { name: "Heavy", artist: "Birdtalker" },
-    { name: "Keep Your Head Up", artist: "Ben Howard" },
-    { name: "It'll All Work Out", artist: "Tom Petty" },
-  ],
-};
-
-function LoadingDots({ color }) {
-  return (
-    <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-      {[0, 1, 2].map((i) => (
-        <div
-          key={i}
-          style={{
-            width: 8,
-            height: 8,
-            borderRadius: "50%",
-            background: color,
-            animation: `loadingDots 1.2s ease-in-out ${i * 0.15}s infinite`,
-          }}
-        />
-      ))}
-    </div>
-  );
-}
 
 function SongRow({ song, index, color, onClick }) {
   return (
@@ -159,7 +95,7 @@ function SongRow({ song, index, color, onClick }) {
           style={{
             fontSize: 15,
             fontWeight: 700,
-            color: "#fff",
+            color: color,
             whiteSpace: "nowrap",
             overflow: "hidden",
             textOverflow: "ellipsis",
@@ -170,7 +106,7 @@ function SongRow({ song, index, color, onClick }) {
         <div
           style={{
             fontSize: 12,
-            color: "#ffffffaa",
+            color: "#1a1630",
             marginTop: 2,
             fontWeight: 600,
           }}
@@ -189,7 +125,6 @@ export default function Detector() {
   const [songs, setSongs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [demoMode, setDemoMode] = useState(true);
   const [charVisible, setCharVisible] = useState(false);
 
   const cfg = mood ? MOOD_CONFIG[mood] : null;
@@ -201,99 +136,7 @@ export default function Detector() {
     setSongs([]);
     setError(null);
     setCharVisible(false);
-    if (demoMode) {
-      await new Promise((r) => setTimeout(r, 1400));
-      const kw = {
-        happy: [
-          "happy",
-          "joy",
-          "great",
-          "amazing",
-          "excited",
-          "laugh",
-          "smile",
-          "wonderful",
-          "good",
-          "love",
-          "fantastic",
-        ],
-        sad: [
-          "sad",
-          "cry",
-          "miss",
-          "alone",
-          "hurt",
-          "broken",
-          "tired",
-          "lost",
-          "grief",
-          "down",
-          "empty",
-        ],
-        angry: [
-          "angry",
-          "mad",
-          "furious",
-          "hate",
-          "rage",
-          "annoyed",
-          "frustrated",
-          "pissed",
-          "upset",
-        ],
-        anxious: [
-          "nervous",
-          "anxious",
-          "worried",
-          "scared",
-          "fear",
-          "stress",
-          "panic",
-          "overwhelm",
-          "tense",
-        ],
-        calm: [
-          "calm",
-          "peaceful",
-          "quiet",
-          "relax",
-          "serene",
-          "gentle",
-          "still",
-          "tranquil",
-          "breathe",
-          "chill",
-        ],
-        romantic: [
-          "love",
-          "romance",
-          "heart",
-          "beautiful",
-          "crush",
-          "sweet",
-          "tender",
-          "darling",
-          "affection",
-        ],
-      };
-      const lower = text.toLowerCase();
-      let detected = null;
-      for (const [m, words] of Object.entries(kw)) {
-        if (words.some((w) => lower.includes(w))) {
-          detected = m;
-          break;
-        }
-      }
-      if (!detected) {
-        const all = Object.keys(MOOD_CONFIG);
-        detected = all[Math.floor(Math.random() * all.length)];
-      }
-      setMood(detected);
-      setSongs(DEMO_SONGS[detected]);
-      setLoading(false);
-      setTimeout(() => setCharVisible(true), 200);
-      return;
-    }
+
     try {
       const res = await fetch("http://localhost:8000/recommendations", {
         method: "POST",
@@ -306,7 +149,7 @@ export default function Detector() {
       setSongs(data.songs);
       setTimeout(() => setCharVisible(true), 200);
     } catch {
-      setError("Could not reach backend. Enable demo mode above!");
+      setError("Could not reach the server. Please try again later.");
     }
     setLoading(false);
   };
@@ -414,56 +257,8 @@ export default function Detector() {
           </p>
         </div>
 
-        {/* Demo toggle */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "flex-end",
-            gap: 10,
-            marginBottom: 24,
-          }}
-        >
-          <span
-            style={{
-              fontSize: 13,
-              color: "#5a5270",
-              fontWeight: 700,
-              fontFamily: "'Space Mono',monospace",
-            }}
-          >
-            demo mode
-          </span>
-          <div
-            onClick={() => setDemoMode(!demoMode)}
-            style={{
-              width: 48,
-              height: 26,
-              borderRadius: 13,
-              background: demoMode ? "#b06dff" : "#ccc",
-              cursor: "pointer",
-              position: "relative",
-              border: "2px solid #1a1630",
-              transition: "background 0.25s",
-            }}
-          >
-            <div
-              style={{
-                position: "absolute",
-                top: 3,
-                left: demoMode ? 24 : 3,
-                width: 16,
-                height: 16,
-                borderRadius: "50%",
-                background: "#fff",
-                transition: "left 0.25s",
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Orb indicator */}
-        {(mood || loading) && (
+        {/* Character popup */}
+        {charVisible && cfg && (
           <div
             style={{
               display: "flex",
@@ -474,66 +269,40 @@ export default function Detector() {
               animation: "popIn 0.5s cubic-bezier(0.34,1.56,0.64,1)",
             }}
           >
-            <div
+            <img
+              src={cfg.gif}
+              alt={cfg.label}
               style={{
-                width: 120,
-                height: 120,
-                borderRadius: "50%",
-                border: `4px solid ${cfg?.color || "#b06dff"}`,
-                background: `${cfg?.color || "#b06dff"}18`,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 52,
-                animation: loading
-                  ? "orbPulse 1s ease-in-out infinite"
-                  : "floatY 3s ease-in-out infinite",
-                "--orb-color": cfg?.color || "#b06dff",
-                boxShadow: `0 0 30px ${cfg?.color || "#b06dff"}44`,
+                width: 200,
+                height: 200,
+                objectFit: "cover",
+                borderRadius: 28,
+                animation: "slideInChar 0.6s cubic-bezier(0.34,1.56,0.64,1)",
+                filter: `drop-shadow(0 4px 20px ${cfg.color}99)`,
               }}
-            >
-              {loading ? (
-                <LoadingDots color={cfg?.color || "#b06dff"} />
-              ) : (
-                cfg?.emoji
-              )}
-            </div>
-            {cfg && !loading && (
-              <div style={{ textAlign: "center" }}>
-                <div
-                  style={{
-                    fontFamily: "'Fredoka One',cursive",
-                    fontSize: 32,
-                    color: cfg.color,
-                    textShadow: `3px 3px 0 ${cfg.color}33`,
-                  }}
-                >
-                  {cfg.label}
-                </div>
-                <div
-                  style={{
-                    fontSize: 15,
-                    color: "#5a5270",
-                    fontWeight: 600,
-                    marginTop: 4,
-                  }}
-                >
-                  {cfg.desc}
-                </div>
-              </div>
-            )}
-            {/* Character popup */}
-            {charVisible && cfg && (
+            />
+            <div style={{ textAlign: "center" }}>
               <div
                 style={{
-                  fontSize: 72,
-                  animation: "slideInChar 0.6s cubic-bezier(0.34,1.56,0.64,1)",
-                  filter: `drop-shadow(0 4px 16px ${cfg.color}88)`,
+                  fontFamily: "'Fredoka One',cursive",
+                  fontSize: 32,
+                  color: cfg.color,
+                  textShadow: `3px 3px 0 ${cfg.color}33`,
                 }}
               >
-                {cfg.char}
+                {cfg.label}
               </div>
-            )}
+              <div
+                style={{
+                  fontSize: 15,
+                  color: "#5a5270",
+                  fontWeight: 600,
+                  marginTop: 4,
+                }}
+              >
+                {cfg.desc}
+              </div>
+            </div>
           </div>
         )}
 
@@ -584,7 +353,7 @@ export default function Detector() {
                 color: "#9a9ab0",
               }}
             >
-              {demoMode ? "✦ demo mode active" : "⌘↵ to submit"}
+              ⌘↵ to submit
             </span>
             <button
               onClick={detect}
@@ -658,7 +427,18 @@ export default function Detector() {
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {songs.map((song, i) => (
-                <SongRow key={i} song={song} index={i} color={cfg.color} onClick={() => window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(song.name + ' ' + song.artist)}`, '_blank')}/>
+                <SongRow
+                  key={i}
+                  song={song}
+                  index={i}
+                  color={cfg.color}
+                  onClick={() =>
+                    window.open(
+                      `https://www.youtube.com/results?search_query=${encodeURIComponent(song.name + " " + song.artist)}`,
+                      "_blank",
+                    )
+                  }
+                />
               ))}
             </div>
           </div>

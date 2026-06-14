@@ -23,7 +23,6 @@ export default function App() {
       <Navbar />
       <Hero />      
       <MoodsSection />
-      <MarqueeTicker items={TICKER_ITEMS} bg="#FFD93D" color="#0d0b14" />
       <Detector />
       <AboutFooter />
     </div>

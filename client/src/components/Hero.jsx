@@ -20,7 +20,7 @@ function RainbowRibbon() {
         { color:'#7bc67e', offset:36 },
         { color:'#5ba8ff', offset:48 },
         { color:'#b06dff', offset:60 },
-        { color:'#FF6FB7', offset:72 },
+        { color:'#FF6FB7', offset:64 },
       ].map(({ color, offset }) => (
         <path key={color}
           d={`M${-60+offset} ${40+offset} C 200 ${-20+offset}, 500 ${300+offset}, 700 ${200+offset} S 1100 ${-10+offset}, 1500 ${180+offset}`}
@@ -87,7 +87,7 @@ export default function Hero() {
           WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent',
           textShadow:'none',
           marginBottom:24,
-          filter:'drop-shadow(4px 4px 0 #1a163044)',
+          filter:'drop-shadow(8px 8px 0 #1a163044)',
         }}>
           Music ✦
         </h1>
@@ -106,7 +106,7 @@ export default function Hero() {
             background:'#FFD93D', color:'#0d0b14',
             fontSize:18, padding:'16px 38px',
           }}>
-            Detect my mood
+            Recommend me songs
           </a>
           <a href="#how-it-works" className="retro-btn" style={{
             background:'transparent', color:'#fff', borderColor:'#ffffff55',
@@ -119,9 +119,7 @@ export default function Hero() {
 
       {/* Characters bottom */}
       <div style={{
-        position:'absolute', bottom:0, left:0, right:0,
-        display:'flex', justifyContent:'space-between', alignItems:'flex-end',
-        padding:'0 60px', pointerEvents:'none',
+        position:'absolute', bottom:0, left:'50%', transform:'translateX(-50%)', pointerEvents:'none',
       }}>
         
         {/* Scroll hint */}
