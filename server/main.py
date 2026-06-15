@@ -31,7 +31,7 @@ mood_to_tag = {
     "sad": "sad",
     "angry": "metal",
     "anxious": "anxiety",
-    "calm": "chill",
+    "calm": "ambient",
     "romantic": "romance",
 }
 
