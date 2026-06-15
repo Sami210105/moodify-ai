@@ -27,7 +27,7 @@ export default function AboutFooter() {
       }}>
         <div style={{
           position:'absolute', top:0, left:0, right:0, bottom:0,
-          background:'radial-gradient(ellipse at top, #b06dff0a 0%, transparent 60%)',
+          background:'radial-gradient(ellipse at top, #0d0b14 0%, transparent 60%)',
           pointerEvents:'none',
         }}/>
 

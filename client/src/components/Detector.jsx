@@ -4,6 +4,7 @@ import anger from "../assets/images/anger.gif";
 import fear from "../assets/images/fear.gif";
 import romance from "../assets/images/romantic.gif";
 import anxietyGif from "../assets/images/anxiety.gif";
+import calm from "../assets/images/calm.gif";
 import { useState } from "react";
 
 const MOOD_CONFIG = {
@@ -26,9 +27,9 @@ const MOOD_CONFIG = {
     desc: "That fire in you. Let it out.",
   },
   calm: {
-    color: "#b06dff",
-    gif: fear,
-    label: "Fear.",
+    color: "#8fcca5",
+    gif: calm,
+    label: "Calm.",
     desc: "Breathing slow. Soft music incoming.",
   },
   romantic: {
@@ -114,7 +115,6 @@ function SongRow({ song, index, color, onClick }) {
           {song.artist}
         </div>
       </div>
-      <div style={{ fontSize: 18, flexShrink: 0 }}>🎵</div>
     </div>
   );
 }
@@ -138,7 +138,7 @@ export default function Detector() {
     setCharVisible(false);
 
     try {
-      const res = await fetch("http://localhost:8000/recommendations", {
+      const res = await fetch("https://samidha21-moodify-ai-backend.hf.space/recommendations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text }),
@@ -210,20 +210,7 @@ export default function Detector() {
       >
         🎶
       </div>
-      <div
-        style={{
-          position: "absolute",
-          top: "40%",
-          right: "3%",
-          fontSize: 32,
-          opacity: 0.1,
-          userSelect: "none",
-          animation: "floatY 3s ease-in-out infinite",
-        }}
-      >
-        ✨
-      </div>
-
+      
       <div
         style={{
           maxWidth: 680,
@@ -233,12 +220,6 @@ export default function Detector() {
         }}
       >
         <div style={{ textAlign: "center", marginBottom: 56 }}>
-          <div
-            className="section-label"
-            style={{ color: "#b06dff", marginBottom: 12 }}
-          >
-            Mood detector
-          </div>
           <h2
             className="groovy-title"
             style={{
@@ -253,7 +234,7 @@ export default function Detector() {
             <span style={{ color: "#b06dff" }}>of perfect music ✦</span>
           </h2>
           <p style={{ fontSize: 16, color: "#5a5270", fontWeight: 600 }}>
-            Tell us how you're feeling — we'll find the soundtrack.
+            Tell us how you're feeling and we'll find you the soundtrack.
           </p>
         </div>
 
@@ -360,7 +341,7 @@ export default function Detector() {
               disabled={loading || !text.trim()}
               className="retro-btn"
               style={{
-                background: cfg ? cfg.color : "#FFD93D",
+                background: cfg ? cfg.color : "#fadf72",
                 color: "#1a1630",
                 fontSize: 15,
                 padding: "11px 28px",
@@ -369,7 +350,7 @@ export default function Detector() {
                 transition: "all 0.2s",
               }}
             >
-              {loading ? "Reading you..." : "Detect my mood 🎯"}
+              {loading ? "Reading you..." : "Detect my mood"}
             </button>
           </div>
         </div>

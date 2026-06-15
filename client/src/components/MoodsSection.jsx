@@ -4,12 +4,13 @@ import anger from '../assets/images/anger.gif'
 import fear from '../assets/images/fear.gif'
 import romance from '../assets/images/romantic.gif'
 import anxiety from '../assets/images/anxiety.gif'
+import calm from '../assets/images/calm.gif'
 
 const MOODS = [
   { key:'happy',    img:joy, color:'#FFD93D', bg:'#FFD93D22', border:'#FFD93D', label:'Joy',    tagline:'Bright & bubbly energy',  tag:'happy' },
   { key:'sad',      img:sadness, color:'#5ba8ff', bg:'#5ba8ff22', border:'#5ba8ff', label:'Sadness',      tagline:'Soulful & introspective',  tag:'sad' },
   { key:'angry',    img:anger, color:'#ff4d6d', bg:'#ff4d6d22', border:'#ff4d6d', label:'Anger',    tagline:'Raw & electric fire',      tag:'metal' },
-  { key:'calm',     img:fear, color:'#b06dff', bg:'#b06dff22', border:'#b06dff', label:'Fear',     tagline:'Soft & flowing stillness', tag:'chill' },
+  { key:'calm',     img:calm, color:'#8fcca5', bg:'#8fcca522', border:'#8fcca5', label:'Calm',     tagline:'Soft & flowing stillness', tag:'chill' },
   { key:'romantic', img:romance, color:'#fd7ebe', bg:'#ff6fb72f', border:'#fd7ebe', label:'Romance', tagline:'Tender & heart-open',      tag:'romance' },
   { key:'anxious',  img:anxiety, color:'#fd8662', bg:'#fd866222', border:'#fd8662', label:'Anxiety',  tagline:'Tense & searching',        tag:'anxiety' },
 ]
