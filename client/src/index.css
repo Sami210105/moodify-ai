@@ -145,3 +145,12 @@ body {
   background: white;
   animation: twinkle var(--dur, 2s) ease-in-out var(--del, 0s) infinite;
 }
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
