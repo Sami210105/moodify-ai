@@ -65,7 +65,7 @@ function AboutFooter() {
           </h2>
 
           <p style={{
-            fontSize:17, color:'#ffffffcc', lineHeight:1.8, fontWeight:600, marginBottom:20,
+            fontSize:20, color:'#ffffffcc', lineHeight:1.8, fontWeight:600, marginBottom:20,
             transform:`translateY(${lerp(30,0,clamp(p3In - 0.1))}px)`,
             opacity: clamp((p3In - 0.1) * 3),
           }}>
@@ -75,7 +75,7 @@ function AboutFooter() {
           </p>
 
           <p style={{
-            fontSize:15, color:'#ffffff88', lineHeight:1.7, fontWeight:600,
+            fontSize:18, color:'#ffffff88', lineHeight:1.7, fontWeight:600,
             transform:`translateY(${lerp(30,0,clamp(p3In - 0.2))}px)`,
             opacity: clamp((p3In - 0.2) * 4),
           }}>

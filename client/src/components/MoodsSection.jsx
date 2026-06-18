@@ -165,14 +165,7 @@ function MoodsSection() {
                     <h3 style={{ fontFamily:"'Fredoka One',cursive", fontSize:26, color:'#fff', marginBottom:3, textShadow:`2px 2px 0 ${m.color}55` }}>
                       {m.label}
                     </h3>
-                    <p style={{ fontSize:12, color:'#ffffffaa', fontWeight:600 }}>{m.tagline}</p>
-                  </div>
-                  <div style={{
-                    display:'inline-flex', alignItems:'center', gap:5,
-                    padding:'4px 12px', borderRadius:40,
-                    background:m.color+'22', border:`1px solid ${m.color}55`, width:'fit-content',
-                  }}>
-                    <span style={{ fontFamily:"'Space Mono',monospace", fontSize:10, color:m.color, letterSpacing:1 }}>#{m.tag}</span>
+                    <p style={{ fontSize:20, color:'#ffffffaa', fontWeight:600 }}>{m.tagline}</p>
                   </div>
                 </div>
               )

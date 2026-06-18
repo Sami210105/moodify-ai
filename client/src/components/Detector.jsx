@@ -137,7 +137,7 @@ function Detector() {
               Come with me to a land<br/>
               <span style={{ color:'#b06dff' }}>of perfect music ✦</span>
             </h2>
-            <p style={{ fontSize:16, color:'#5a5270', fontWeight:600 }}>
+            <p style={{ fontSize:20, color:'#5a5270', fontWeight:600 }}>
               Tell us how you're feeling and we'll find you the soundtrack.
             </p>
           </div>
