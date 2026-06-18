@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useScroll } from '../ScrollContext'
 import { clamp, remap, lerp, SCENES } from '../useScrollProgress'
 import joy      from '../assets/images/joy.gif'
@@ -7,6 +7,7 @@ import anger    from '../assets/images/anger.gif'
 import romance  from '../assets/images/romantic.gif'
 import anxietyG from '../assets/images/anxiety.gif'
 import calm     from '../assets/images/calm.gif'
+import { memo } from 'react'
 
 const MOOD_CONFIG = {
   happy:    { color:'#FFD93D', gif:joy,      label:'Happy!',    desc:'Pure joy detected. Time to dance.'          },
@@ -42,7 +43,7 @@ function SongRow({ song, index, color, onClick }) {
   )
 }
 
-export default function Detector() {
+function Detector() {
   const { progress } = useScroll()
 
   const [text, setText]               = useState('')
@@ -52,19 +53,32 @@ export default function Detector() {
   const [error, setError]             = useState(null)
   const [charVisible, setCharVisible] = useState(false)
 
-  // scene 2: enters 1.5–2.5/SCENES, exits 2–3/SCENES
-  const pIn  = remap(progress, 1.5/SCENES, 2.5/SCENES)
-  const pOut = remap(progress, 2/SCENES,   3/SCENES)
+  // FIX (songs not in viewport): ref to the inner scrollable container
+  // and ref to the playlist section so we can scroll to it after results land
+  const innerScrollRef = useRef(null)
+  const playlistRef    = useRef(null)
+
+  const pIn  = remap(progress, 1.5/SCENES, 2.0/SCENES)
+  const pOut = remap(progress, 2.5/SCENES, 3.0/SCENES)
 
   const sceneOp = clamp(pIn * 1.5) * clamp(1 - pOut * 1.5)
   const sceneY  = lerp(6, 0, clamp(pIn))
-  const active  = clamp(pIn) > 0.5 && clamp(pOut) < 0.4
+  const active  = clamp(pIn) > 0.3 && clamp(pOut) < 0.6
 
-  // bg: dark → cream
-  const t = clamp(pIn)
+  const t  = clamp(pIn)
   const bg = `rgb(${Math.round(lerp(13,245,t))},${Math.round(lerp(11,240,t))},${Math.round(lerp(20,232,t))})`
 
   const cfg = mood ? MOOD_CONFIG[mood] : null
+
+  // FIX (songs not in viewport): auto-scroll inner container to playlist section
+  // whenever songs arrive so they're immediately visible
+  useEffect(() => {
+    if (songs.length > 0 && playlistRef.current && innerScrollRef.current) {
+      setTimeout(() => {
+        playlistRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      }, 300) // slight delay so character animation plays first
+    }
+  }, [songs])
 
   const detect = async () => {
     if (!text.trim()) return
@@ -94,11 +108,21 @@ export default function Detector() {
       <div style={{ position:'absolute', top:'8%', right:'4%',  fontSize:64, opacity:0.1, userSelect:'none', animation:'wobble 3s ease-in-out infinite' }}>🎵</div>
       <div style={{ position:'absolute', bottom:'12%', left:'4%', fontSize:48, opacity:0.1, userSelect:'none', animation:'wobble 4s ease-in-out 1s infinite' }}>🎶</div>
 
-      <div style={{
-        position:'absolute', inset:0, overflowY:'auto',
-        padding:'100px 40px 60px',
-        display:'flex', flexDirection:'column', alignItems:'center',
-      }}>
+      {/* FIX (songs not in viewport): changed from overflow:hidden to overflowY:auto
+          so songs can be scrolled to within this scene's viewport */}
+      <div
+        ref={innerScrollRef}
+        style={{
+          position:'absolute', inset:0,
+          overflowY:'auto',
+          overflowX:'hidden',
+          padding:'100px 40px 80px',
+          display:'flex', flexDirection:'column', alignItems:'center',
+          // hide the scrollbar visually — the scene itself handles paging
+          scrollbarWidth:'none',
+        }}
+      >
+        <style>{`div::-webkit-scrollbar { display: none; }`}</style>
         <div style={{ width:'100%', maxWidth:640 }}>
           {/* heading */}
           <div style={{
@@ -145,7 +169,7 @@ export default function Detector() {
               <textarea
                 value={text} onChange={e => setText(e.target.value)}
                 onKeyDown={e => { if (e.key==='Enter' && (e.metaKey||e.ctrlKey)) detect() }}
-                placeholder="Tell me how you're feeling right now... I'm all ears 👂"
+                placeholder="Tell me how you're feeling right now... I'm all ears"
                 rows={4}
                 style={{
                   width:'100%', padding:'22px 26px', background:'transparent',
@@ -169,7 +193,7 @@ export default function Detector() {
             )}
 
             {songs.length > 0 && cfg && (
-              <div style={{ marginTop:28 }}>
+              <div ref={playlistRef} style={{ marginTop:28 }}>
                 <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:14 }}>
                   <div className="section-label" style={{ color:cfg.color }}>Your {cfg.label.replace(/[^a-zA-Z]/g,'')} playlist</div>
                   <div style={{ flex:1, height:2, background:`${cfg.color}33`, borderRadius:1 }}/>
@@ -190,3 +214,5 @@ export default function Detector() {
     </div>
   )
 }
+
+export default memo(Detector)

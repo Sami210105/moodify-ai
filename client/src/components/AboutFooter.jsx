@@ -1,19 +1,35 @@
 import { useScroll } from '../ScrollContext'
 import { clamp, remap, lerp, SCENES } from '../useScrollProgress'
+import { memo } from 'react'
 
-export default function AboutFooter() {
-  const { progress } = useScroll()
+// scene index of each link target, out of SCENES total — matches the order
+// App.jsx mounts components in and what Hero.jsx / NavDots already scroll to
+const SCENE_INDEX = { hero:0, moods:1, detector:2, about:3, footer:4 }
 
-  // scene 3 (about): enters 2.5–3.5/SCENES, exits 3–4/SCENES
-  const p3In  = remap(progress, 2.5/SCENES, 3.5/SCENES)
-  const p3Out = remap(progress, 3/SCENES,   4/SCENES)
+function AboutFooter() {
+  const { progress, scrollRef } = useScroll()
+
+  // FIX: tighter enter ramp, exit pushed later — gives full-opacity plateau
+  // scene 3 (about): enters 2.5→3.0/SCENES, exits 3.5→4.0/SCENES
+  const p3In  = remap(progress, 2.5/SCENES, 3.0/SCENES)
+  const p3Out = remap(progress, 3.5/SCENES, 4.0/SCENES)
   const aboutOp = clamp(p3In * 1.5) * clamp(1 - p3Out * 1.5)
   const aboutY  = lerp(6, 0, clamp(p3In))
 
-  // scene 4 (footer): enters 3.5–4.5/SCENES
-  const p4In  = remap(progress, 3.5/SCENES, 4.5/SCENES)
+  // scene 4 (footer): enters 3.5–4.5/SCENES (unchanged — no exit needed)
+  const p4In     = remap(progress, 3.5/SCENES, 4.5/SCENES)
   const footerOp = clamp(p4In * 1.5)
   const footerY  = lerp(5, 0, clamp(p4In))
+
+  // same scroll-to-scene approach as Hero.jsx's buttons and App.jsx's NavDots —
+  // kept identical so all three stay in sync if scene timing ever changes
+  const goToScene = (sceneKey) => {
+    const i   = SCENE_INDEX[sceneKey]
+    const el  = scrollRef.current
+    if (!el) return
+    const max = el.scrollHeight - el.clientHeight
+    el.scrollTo({ top: max * (i / SCENES + 0.01), behavior:'smooth' })
+  }
 
   return (
     <>
@@ -91,8 +107,20 @@ export default function AboutFooter() {
             </div>
             <div style={{ display:'flex', gap:60, flexWrap:'wrap' }}>
               {[
-                { head:'Navigate', links:['Meet your moods','Mood detector','About','GitHub'] },
-                { head:'Moods',    links:['Happy','Sad','Angry','Calm','Romantic','Anxious'] },
+                { head:'Navigate', links:[
+                  { label:'Meet your moods', scene:'moods'    },
+                  { label:'Mood detector',   scene:'detector' },
+                  { label:'About',           scene:'about'    },
+                  { label:'GitHub',          href:'https://github.com/Sami210105/moodify-ai' },
+                ]},
+                { head:'Moods', links:[
+                  { label:'Happy',    scene:'moods' },
+                  { label:'Sad',      scene:'moods' },
+                  { label:'Angry',    scene:'moods' },
+                  { label:'Calm',     scene:'moods' },
+                  { label:'Romantic', scene:'moods' },
+                  { label:'Anxious',  scene:'moods' },
+                ]},
               ].map(col => (
                 <div key={col.head}>
                   <div style={{ fontFamily:"'Space Mono',monospace", fontSize:11, letterSpacing:2, textTransform:'uppercase', color:'#ffffff44', marginBottom:16 }}>
@@ -100,10 +128,19 @@ export default function AboutFooter() {
                   </div>
                   <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
                     {col.links.map(l => (
-                      <a key={l} href="#" style={{ fontSize:14, color:'#ffffff88', textDecoration:'none', fontWeight:600, transition:'color 0.2s', pointerEvents:'all' }}
+                      <a key={l.label}
+                        href={l.href ?? '#'}
+                        target={l.href ? '_blank' : undefined}
+                        rel={l.href ? 'noopener noreferrer' : undefined}
+                        onClick={e => {
+                          // internal links scroll-to-scene instead of following href="#"
+                          // (which would otherwise just jump to the top of the page)
+                          if (l.scene) { e.preventDefault(); goToScene(l.scene) }
+                        }}
+                        style={{ fontSize:14, color:'#ffffff88', textDecoration:'none', fontWeight:600, transition:'color 0.2s', pointerEvents:'all' }}
                         onMouseEnter={e => e.target.style.color='#FFD93D'}
                         onMouseLeave={e => e.target.style.color='#ffffff88'}
-                      >{l}</a>
+                      >{l.label}</a>
                     ))}
                   </div>
                 </div>
@@ -121,3 +158,5 @@ export default function AboutFooter() {
     </>
   )
 }
+
+export default memo(AboutFooter)

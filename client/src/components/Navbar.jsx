@@ -1,4 +1,6 @@
-export default function Navbar() {
+import { memo } from 'react'
+
+function Navbar() {
   return (
     <nav style={{
       position:'absolute', top:0, left:0, right:0, zIndex:999,
@@ -10,13 +12,6 @@ export default function Navbar() {
       pointerEvents:'all',
     }}>
       <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-        <div style={{
-          width:36, height:36, borderRadius:'50%',
-          background:'linear-gradient(135deg,#FFD93D,#FF6FB7)',
-          border:'2px solid #1a1630',
-          display:'flex', alignItems:'center', justifyContent:'center',
-          fontSize:18,
-        }}>🎵</div>
         <span style={{ fontFamily:"'Fredoka One',cursive", fontSize:22, color:'#fff', letterSpacing:0.5 }}>
           Moodify<span style={{ color:'#FFD93D' }}>AI</span>
         </span>
@@ -24,3 +19,4 @@ export default function Navbar() {
     </nav>
   )
 }
+export default memo(Navbar)

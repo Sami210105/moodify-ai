@@ -1,7 +1,8 @@
 import { useScroll } from '../ScrollContext'
 import { clamp, remap, SCENES } from '../useScrollProgress'
+import { memo } from 'react'
 
-const STARS = Array.from({ length: 100 }, (_, i) => ({
+const STARS = Array.from({ length: 80 }, (_, i) => ({
   id: i,
   left: `${Math.random() * 100}%`,
   top:  `${Math.random() * 100}%`,
@@ -13,7 +14,7 @@ const STARS = Array.from({ length: 100 }, (_, i) => ({
 function RainbowRibbon() {
   return (
     <svg viewBox="0 0 1440 520" fill="none" xmlns="http://www.w3.org/2000/svg"
-      style={{ position:'absolute', inset:0, width:'100%', height:'100%', pointerEvents:'none', opacity:0.85 }}>
+      style={{ position:'absolute', inset:0, width:'100%', height:'100%', pointerEvents:'none', opacity:0.65 }}>
       {[
         { color:'#FF4D6D', offset:0  },
         { color:'#FF8C42', offset:12 },
@@ -32,7 +33,7 @@ function RainbowRibbon() {
   )
 }
 
-export default function Hero() {
+function Hero() {
   const { progress, scrollRef } = useScroll()
 
   // scene 0: 0 → 1/SCENES of total scroll
@@ -46,8 +47,9 @@ export default function Hero() {
       position:'absolute', inset:0,
       background:'#0d0b14',
       opacity: clamp(1 - p * 2),
-      transform:`translateY(${-p * 40}vh)`,
+      transform:`translate3d(0,${-p * 40}vh,0)`,
       willChange:'transform,opacity',
+      backfaceVisibility:'hidden',
     }}>
       {/* stars */}
       <div style={{ position:'absolute', inset:0, opacity: starsOp }}>
@@ -127,3 +129,5 @@ export default function Hero() {
     </div>
   )
 }
+
+export default memo(Hero)
