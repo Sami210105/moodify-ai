@@ -1,5 +1,5 @@
 import { useScroll } from "../ScrollContext";
-import { clamp, remap, SCENES } from "../usescrollprogress";
+import { clamp, remap, SCENES } from "../useScrollProgress";
 import { memo } from "react";
 
 const STARS = Array.from({ length: 80 }, (_, i) => ({

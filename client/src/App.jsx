@@ -1,5 +1,5 @@
 import { useScroll, ScrollProvider } from "./ScrollContext";
-import { SCENES, clamp } from "./usescrollprogress";
+import { SCENES, clamp } from "./useScrollProgress";
 
 import Navbar      from "./components/Navbar";
 import Hero        from "./components/Hero";

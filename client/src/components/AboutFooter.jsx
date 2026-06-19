@@ -1,5 +1,5 @@
 import { useScroll } from '../ScrollContext'
-import { clamp, remap, lerp, SCENES } from '../usescrollprogress'
+import { clamp, remap, lerp, SCENES } from '../useScrollProgress'
 import { memo } from 'react'
 
 // scene index of each link target, out of SCENES total — matches the order
