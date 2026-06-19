@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useScroll } from '../ScrollContext'
-import { clamp, remap, lerp, SCENES } from '../useScrollProgress'
+import { clamp, remap, lerp, SCENES } from '../usescrollprogress'
 import joy      from '../assets/images/joy.gif'
 import sadness  from '../assets/images/sadness.gif'
 import anger    from '../assets/images/anger.gif'
