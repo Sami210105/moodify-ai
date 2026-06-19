@@ -169,7 +169,7 @@ function Detector() {
               <textarea
                 value={text} onChange={e => setText(e.target.value)}
                 onKeyDown={e => { if (e.key==='Enter' && (e.metaKey||e.ctrlKey)) detect() }}
-                placeholder="Tell me how you're feeling right now... I'm all ears"
+                placeholder="How you're feeling... I'm all ears"
                 rows={4}
                 style={{
                   width:'100%', padding:'22px 26px', background:'transparent',
